@@ -22,7 +22,7 @@ Widget CustomAppbar(BuildContext context){
         onPressed: () {
           Scaffold.of(context).openDrawer();
         },
-        icon: const Icon(Icons.menu, color: AppColor.arrowcolor),
+        icon: const Icon(Icons.menu, color: AppColor.buttoncolor),
         alignment: Alignment.centerLeft,
       ),
     ),
@@ -63,7 +63,7 @@ class DisplayCoin extends ConsumerWidget {
                           padding: EdgeInsets.only(left:5.0),
                           child: CircleAvatar(
                             radius: 11,
-                            backgroundColor: Colors.black,
+                            backgroundColor: AppColor.buttoncolor,
                             foregroundImage: AssetImage(ImageAsset.coinlogo, ),
                           ),
                         ),
