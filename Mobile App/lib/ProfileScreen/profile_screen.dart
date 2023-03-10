@@ -1,3 +1,5 @@
+import 'package:ConnecTen/ProfileScreen/widgets/toggle_button.dart';
+import 'package:ConnecTen/Providers/connection_provider.dart';
 import 'package:ConnecTen/utils/fluttertoast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,6 +25,7 @@ class ProfileScreen extends StatelessWidget {
         ),
         body: SingleChildScrollView(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
                 margin: EdgeInsets.fromLTRB(30, 0, 30, 25),
@@ -39,7 +42,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 child: Stack(
                   children: [
-                    // ToggleButton(),
+                    ToggleButton(),
                     // LockButton(),
                     //Stack 2
                     const ProfileHeaderWidget(),
@@ -52,7 +55,6 @@ class ProfileScreen extends StatelessWidget {
           ),
         ));
   }
-
 }
 
 class LockButton extends ConsumerWidget {
@@ -64,7 +66,8 @@ class LockButton extends ConsumerWidget {
     final _databaseUser = ref.watch(databaseProvider);
 
     return _userDetails.when(
-        data: (userData) => Row(
+      data: (userData) {
+        return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Icon(userData.isPrivate ? Icons.lock_rounded : Icons.lock_open_rounded,
@@ -73,7 +76,10 @@ class LockButton extends ConsumerWidget {
             ToggleSwitch(
               minWidth: screenWidth! * 0.16,
               minHeight: screenHeight! * 0.04,
-              activeBgColors: [[AppColor.buttoncolor], [AppColor.buttoncolor]],
+              activeBgColors: [
+                [AppColor.buttoncolor],
+                [AppColor.buttoncolor]
+              ],
               activeFgColor: Colors.white,
               inactiveBgColor: AppColor.cardcolor,
               inactiveFgColor: Colors.black,
@@ -84,8 +90,9 @@ class LockButton extends ConsumerWidget {
               onToggle: (index) {
                 _userDetails.value!.isPrivate = !_userDetails.value!.isPrivate;
                 _databaseUser.updateUserData(_userDetails.value!);
-                _userDetails.value!.isPrivate ? {toastWidget("Profile Locked")
-                } : toastWidget("Profile Unlocked");
+                _userDetails.value!.isPrivate
+                    ? {toastWidget("Profile Locked")}
+                    : toastWidget("Profile Unlocked");
               },
             ),
             // Icon(userData.isPrivate ? Icons.lock_rounded : Icons.lock_open_rounded,
@@ -109,14 +116,13 @@ class LockButton extends ConsumerWidget {
             // )
             // icon: Icon(profileState ? Icons.lock_rounded : Icons.lock_open_rounded,)),
           ],
-        ),
-        error: (err, stack) => Text('Error: $err'),
+        );
+      },
+      error: (err, stack) => Text('Error: $err'),
       loading: () {
-        return const Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(
-              color: Colors.blue,
-            ),
+        return Center(
+          child: CircularProgressIndicator(
+            color: Colors.blue,
           ),
         );
       },
