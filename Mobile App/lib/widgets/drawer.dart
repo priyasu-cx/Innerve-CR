@@ -1,3 +1,6 @@
+import 'package:ConnecTen/Models/user_models.dart';
+import 'package:ConnecTen/Providers/connection_provider.dart';
+import 'package:ConnecTen/utils/fluttertoast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ConnecTen/Providers/auth_providers.dart';
@@ -17,6 +20,9 @@ class Menu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final _authService = ref.watch(authServicesProvider);
     final _userDetails = ref.watch(userDetailsProvider);
+    final _authUser = ref.watch(authUserProvider);
+    final cp = ref.watch(connectionProvider);
+
     return Drawer(
       child: Material(
         color: AppColor.secbgcolor,
@@ -29,33 +35,49 @@ class Menu extends ConsumerWidget {
               SizedBox(
                 height: screenHeight! * 0.03,
               ),
-              Container(
-                padding: EdgeInsets.all(screenHeight! * 0.01),
-                width: screenWidth! * 0.4,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    width: 2,
-                    color: Colors.grey.withOpacity(0.4),
+              InkWell(
+                onTap: () async {
+                  UserModel userData = _userDetails.value!;
+
+                  if(userData.coins >= 500){
+                  print("Burst Mode");
+                  cp.disableDiscovery();
+                  cp.enableAdvertising(_authUser.uid, true, 1);
+                  await Future.delayed(Duration(seconds: 5), () {});
+                  // TODO: Close the drawer and end the advertisement
+                  Navigator.pop(context);
+                }else{
+                    toastWidget("Not enough coins");
+                  }
+                },
+                child: Container(
+                  padding: EdgeInsets.all(screenHeight! * 0.01),
+                  width: screenWidth! * 0.4,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      width: 2,
+                      color: Colors.grey.withOpacity(0.4),
+                    ),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.qr_code_scanner_rounded,
-                        size: 14, color: Colors.black87),
-                    SizedBox(
-                      width: screenWidth! * 0.005,
-                    ),
-                    const Text(
-                      "Burst Mode",
-                      style: TextStyle(
-                        color: Colors.black87,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w300,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.qr_code_scanner_rounded,
+                          size: 14, color: Colors.black87),
+                      SizedBox(
+                        width: screenWidth! * 0.005,
                       ),
-                    ),
-                  ],
+                      const Text(
+                        "Burst Mode",
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w300,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               Padding(
@@ -84,16 +106,17 @@ class Menu extends ConsumerWidget {
                 data: (data) {
                   return data.isPrivate
                       ? Column(
-                        children: [
-                          SizedBox(
-                            height: screenHeight! * 0.03,
-                          ),
-                          DrawerItem(
-                              name: 'Connect Requests',
-                              icon: Icons.connect_without_contact_rounded,
-                              onPressed: () => onItemPressed(context, index: 4)),
-                        ],
-                      )
+                          children: [
+                            SizedBox(
+                              height: screenHeight! * 0.03,
+                            ),
+                            DrawerItem(
+                                name: 'Connect Requests',
+                                icon: Icons.connect_without_contact_rounded,
+                                onPressed: () =>
+                                    onItemPressed(context, index: 4)),
+                          ],
+                        )
                       : Container();
                 },
                 loading: () => Container(),

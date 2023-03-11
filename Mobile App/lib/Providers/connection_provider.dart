@@ -1,4 +1,5 @@
 import 'package:ConnecTen/Models/user_models.dart';
+import 'package:ConnecTen/Services/database_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -56,45 +57,83 @@ class ConnectionNotifier extends ChangeNotifier {
         strategy,
         onEndpointFound: (id, name, serviceId) async {
           print("ID: $id, Name: $name, ServiceID: $serviceId");
-          if (name.split(',').length == 3) {
-            final decodeBody = parseString(name);
-            toastWidget(
-                "Bursting: " + decodeBody[0] + " Level: " + decodeBody[2]);
+          // toastWidget("Recieved ");
+          final decodeBody = parseString(name);
+          if (decodeBody[1] == true) {
+            print("Burst Mode Enabled");
 
-            print(decodeBody);
             if (_connections.contains(decodeBody[0]) == false) {
+              print("Added to Self Connections");
               _connections.add(decodeBody[0]);
             }
+
             if (_burstDone.contains(name) == false) {
+              print("Added to Burst Done");
               _burstDone.add(name);
+              toastWidget("Added Burst");
               if (decodeBody[2] <= 3) {
+                print("Burstinggggggggggggggggggggggggg");
                 disableDiscovery();
                 enableAdvertising(
                     decodeBody[0], decodeBody[1], decodeBody[2] + 1);
                 await Future.delayed(Duration(seconds: cooldown), () {});
                 disableAdvertising();
                 enableDiscovery(uid, context);
-
-                final CollectionReference _userCollection =
-                    FirebaseFirestore.instance.collection('users');
-                _userCollection.doc(uid).get().then((value) {
-                  if (value.exists) {
-                    final data = value.data();
-                    print(data);
-                    if (data != null) {
-                      final UserModel user =
-                          UserModel.fromMap(data as Map<String, dynamic>?);
-                      print(user);
-                      int factor = int.parse(decodeBody[2]);
-                      user.coins += 100 % factor;
-                    }
-                  }
-                });
+                print("Doneeeeeeeeeeeeeeeeeeeeeee");
               }
             }
+
+            print("Add Moneyyyyyyyy");
+            final CollectionReference _userCollection =
+                FirebaseFirestore.instance.collection('users');
+            _userCollection.doc(uid).get().then((value) async {
+              if (value.exists) {
+                final data = value.data();
+                if (data != null) {
+                  final UserModel user =
+                      UserModel.fromMap(data as Map<String, dynamic>?);
+                  user.coins += 100;
+                  await DatabaseService().updateUserData(user);
+                }
+              }
+            });
+
+            //   if (_connections.contains(decodeBody[0]) == false) {
+            //     _connections.add(decodeBody[0]);
+            //   }
+            //   if (_burstDone.contains(name) == false) {
+            //     _burstDone.add(name);
+            //     toastWidget("Added Burst");
+            //     if (decodeBody[2] <= 3) {
+            //       disableDiscovery();
+            //       enableAdvertising(
+            //           decodeBody[0], decodeBody[1], decodeBody[2] + 1);
+            //       await Future.delayed(Duration(seconds: cooldown), () {});
+            //       disableAdvertising();
+            //       enableDiscovery(uid, context);
+
+            //       final CollectionReference _userCollection =
+            //           FirebaseFirestore.instance.collection('users');
+            //       _userCollection.doc(uid).get().then((value) {
+            //         if (value.exists) {
+            //           final data = value.data();
+            //           print(data);
+            //           if (data != null) {
+            //             final UserModel user =
+            //                 UserModel.fromMap(data as Map<String, dynamic>?);
+            //             print(user);
+            //             user.coins += 100;
+            //             _userCollection
+            //                 .doc(uid)
+            //                 .update(user as Map<String, dynamic>);
+            //           }
+            //         }
+            //       });
+            //     }
+            //   }
           } else {
-            if (_connections.contains(name) == false) {
-              _connections.add(name);
+            if (_connections.contains(decodeBody[0]) == false) {
+              _connections.add(decodeBody[0]);
             }
           }
 
@@ -143,6 +182,20 @@ class ConnectionNotifier extends ChangeNotifier {
       } on PlatformException catch (exception) {
         print(exception);
       }
+      final CollectionReference _userCollection =
+          FirebaseFirestore.instance.collection('users');
+      _userCollection.doc(uid).get().then((value) async {
+        print("Deduiction Moneyyyyyy");
+        if (value.exists) {
+          final data = value.data();
+          if (data != null) {
+            final UserModel user =
+                UserModel.fromMap(data as Map<String, dynamic>?);
+            user.coins -= 500;
+            await DatabaseService().updateUserData(user);
+          }
+        }
+      });
     } else {
       final encodeData = "$uid,$burst,$level";
       print(encodeData);
