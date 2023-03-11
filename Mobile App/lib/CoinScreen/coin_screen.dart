@@ -19,17 +19,17 @@ class CoinScreen extends ConsumerWidget {
       data: (userdata) => Scaffold(
       drawer: const Menu(),
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(screenHeight! * 0.12),
+        preferredSize: Size.fromHeight(screenHeight! * 0.08),
         child: AppBar(
-          toolbarHeight: screenHeight! * 0.12,
-          automaticallyImplyLeading: false,
+          // toolbarHeight: screenHeight! * 0.12,
+          // automaticallyImplyLeading: false,
           backgroundColor: Colors.transparent,
-          shadowColor: AppColor.primarybgcolor,
+          // shadowColor: AppColor.primarybgcolor,
           elevation: 0.0,
           leading: Builder(
             builder: (context) => IconButton(
               splashRadius: 1,
-              padding: const EdgeInsets.fromLTRB(30, 30, 0, 25),
+              padding: const EdgeInsets.fromLTRB(30, 0, 0, 0),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -46,7 +46,7 @@ class CoinScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Container(
-              margin: EdgeInsets.fromLTRB(30, 0, 30, 25),
+              margin: EdgeInsets.fromLTRB(30, 20, 30, 25),
               height: screenHeight! * 0.35,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
