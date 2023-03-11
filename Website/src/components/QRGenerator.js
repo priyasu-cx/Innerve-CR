@@ -16,7 +16,7 @@ const QRGenerator = () => {
           <p className="text-xl">
             Alternatively you can download from{" "}
             <span className="text-blue-500">
-              <a href="">Here</a>
+              <a href="https://bit.ly/connecten-apk">Here</a>
             </span>
           </p>
         </div>
