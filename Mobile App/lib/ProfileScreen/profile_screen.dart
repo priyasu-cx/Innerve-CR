@@ -1,4 +1,5 @@
 import 'package:ConnecTen/ProfileScreen/widgets/toggle_button.dart';
+import 'package:ConnecTen/Providers/auth_providers.dart';
 import 'package:ConnecTen/Providers/connection_provider.dart';
 import 'package:ConnecTen/utils/fluttertoast.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import 'package:ConnecTen/utils/size_config.dart';
 import 'package:ConnecTen/widgets/appbar.dart';
 import 'package:ConnecTen/widgets/drawer.dart';
 import 'package:toggle_switch/toggle_switch.dart';
+import 'package:lottie/lottie.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -28,8 +30,8 @@ class ProfileScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                margin: EdgeInsets.fromLTRB(30, 0, 30, 25),
-                height: screenHeight! * 0.38,
+                margin: EdgeInsets.fromLTRB(30, 20, 30, 25),
+                height: screenHeight! * 0.43,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   color: AppColor.primarybgcolor,
@@ -42,18 +44,28 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 child: Stack(
                   children: [
+
                     ToggleButton(),
                     // LockButton(),
                     //Stack 2
                     const ProfileHeaderWidget(),
+
                   ],
                 ),
               ),
               LockButton(),
+
               socialCard(context),
             ],
           ),
-        ));
+        ),
+        // floatingActionButton: FloatingActionButton(
+        //   onPressed: () {
+        //     // context.read(connectionProvider).disconnect();
+        //   },
+        //   child: Lottie.network("https://lottiefiles.com/137084-networking-marketing-agency"),
+        // )
+    );
   }
 }
 
@@ -64,6 +76,8 @@ class LockButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final _userDetails = ref.watch(userDetailsProvider);
     final _databaseUser = ref.watch(databaseProvider);
+    final cp = ref.watch(connectionProvider);
+    final _authUser = ref.watch(authUserProvider);
 
     return _userDetails.when(
       data: (userData) {
@@ -94,6 +108,31 @@ class LockButton extends ConsumerWidget {
                     ? {toastWidget("Profile Locked")}
                     : toastWidget("Profile Unlocked");
               },
+            ),
+            _userDetails.when(
+              loading: () {
+                return const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.blue,
+                    ),
+                  ),
+                );
+              },
+              error: (err, stack) => Text('Error: $err'),
+              data: (currentUser) => ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        currentUser.coins >= 500 ? Colors.blue : Colors.grey,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                  ),
+                  onPressed: () {
+                    cp.disableDiscovery();
+                    cp.enableAdvertising(_authUser.uid, false, null);
+                  },
+                  child: Text("BURST")),
             ),
             // Icon(userData.isPrivate ? Icons.lock_rounded : Icons.lock_open_rounded,
             //   color: userData.isPrivate ? Colors.black : AppColor.secbgcolor,

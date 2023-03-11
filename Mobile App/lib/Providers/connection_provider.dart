@@ -5,29 +5,6 @@ import 'package:ConnecTen/utils/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nearby_connections/nearby_connections.dart';
 
-// Future<bool> getLocationPermission() async {
-//   if (await Nearby().checkLocationPermission() == false) {
-//     await Nearby().askLocationPermission();
-//   }
-//   // notifyListeners();
-//   return Nearby().checkLocationEnabled();
-// }
-
-// Future<bool> getBluetoothPermission() async {
-//   if (await Nearby().checkBluetoothPermission() == false) {
-//     Nearby().askBluetoothPermission();
-//   }
-//   return Nearby().checkBluetoothPermission();
-// }
-
-// final locationPermissionProvider = FutureProvider<bool>(((ref) {
-//   return getLocationPermission();
-// }));
-
-// final bluetoothPermissionProvider = FutureProvider<bool>(((ref) {
-//   return getBluetoothPermission();
-// }));
-
 List<dynamic> parseString(String str) {
   List<String> parts = str.split(',');
   String name = parts[0];
@@ -67,20 +44,31 @@ class ConnectionNotifier extends ChangeNotifier {
   }
 
   Future enableDiscovery(String? uid, context) async {
+    print("----------------------------> $uid");
     try {
       bool a = await Nearby().startDiscovery(
         uid!,
         strategy,
         onEndpointFound: (id, name, serviceId) {
-          if (_connections.contains(name) == false) {
-            _connections.add(name);
+          print("ID: $id, Name: $name, ServiceID: $serviceId");
+          if (name.split(',').length == 3) {
+            final decodeBody = parseString(name);
+            print(decodeBody);
+            if (_connections.contains(decodeBody[0]) == false) {
+              _connections.add(decodeBody[0]);
+            }
+          } else {
+            if (_connections.contains(name) == false) {
+              _connections.add(name);
+            }
           }
+
           // TODO: Add New Connection Snackbar
           toastWidget("New Connection Found");
         },
         onEndpointLost: (id) {},
       );
-    } catch (e) {
+    } on PlatformException catch (e) {
       print(e);
     }
     notifyListeners();
@@ -97,27 +85,52 @@ class ConnectionNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future enableAdvertising(String? uid) async {
-    print("Data aa gya: $uid");
-
-    try {
-      bool a = await Nearby().startAdvertising(
-        uid!,
-        strategy,
-        onConnectionInitiated: onConnectionInit,
-        onConnectionResult: (id, status) {
-          print(status);
-        },
-        onDisconnected: (id) {
-          print("Disconnected: id $id");
-        },
-      );
-      if (a == true) {
-        print("Advertising Started");
+  Future enableAdvertising(String? uid, bool? burst, int? level) async {
+    // print("Data aa gya: $uid");
+    if (burst == true) {
+      final encodeData = "$uid,$burst,$level";
+      print(encodeData);
+      try {
+        bool a = await Nearby().startAdvertising(
+          encodeData,
+          strategy,
+          onConnectionInitiated: onConnectionInit,
+          onConnectionResult: (id, status) {
+            print(status);
+          },
+          onDisconnected: (id) {
+            print("Disconnected: id $id");
+          },
+        );
+        if (a == true) {
+          print("Advertising Started");
+        }
+      } on PlatformException catch (exception) {
+        print(exception);
       }
-    } on PlatformException catch (exception) {
-      print(exception);
+    } else {
+      final encodeData = "$uid,$burst,$level";
+      print(encodeData);
+      try {
+        bool a = await Nearby().startAdvertising(
+          encodeData,
+          strategy,
+          onConnectionInitiated: onConnectionInit,
+          onConnectionResult: (id, status) {
+            print(status);
+          },
+          onDisconnected: (id) {
+            print("Disconnected: id $id");
+          },
+        );
+        if (a == true) {
+          print("Advertising Started");
+        }
+      } on PlatformException catch (exception) {
+        print(exception);
+      }
     }
+
     notifyListeners();
   }
 

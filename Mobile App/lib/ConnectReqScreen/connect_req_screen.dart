@@ -122,12 +122,14 @@ class ConnectReqItem extends ConsumerWidget{
                   UserModel currentuserdata = _currentuserdata.value!;
                   print("Test");
                   // currentuserdata.requestList!.remove(userData.uid);
-                  if(currentuserdata.connectedList!.contains(userData.uid)== true) {
+                  if(userData.connectedList!.contains(currentuserdata.uid)== true) {
                     toastWidget("Already Connected");
                   } else {
-                    currentuserdata.connectedList!.add(userData.uid);
+                    userData.connectedList!.add(currentuserdata.uid);
+                    userData.coins = userData.coins + 10;
                     currentuserdata.requestList!.remove(userData.uid);
                     toastWidget("Added to Connections");
+                    await _databaseProvider.updateUserData(userData);
                     await _databaseProvider.updateUserData(currentuserdata);
                   }
                 }, icon: Icon(Icons.check_circle_rounded)),

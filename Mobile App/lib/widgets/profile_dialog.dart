@@ -1,3 +1,4 @@
+import 'package:ConnecTen/Providers/database_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ConnecTen/Models/user_models.dart';
@@ -6,7 +7,7 @@ import 'package:ConnecTen/utils/fluttertoast.dart';
 import 'package:ConnecTen/utils/launch_urls.dart';
 import 'package:ConnecTen/utils/size_config.dart';
 
-Future ProfileDialog(UserModel allUserData, context) => showDialog(
+Future ProfileDialog(UserModel UserData, UserModel currentUserData, context) => showDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
@@ -21,7 +22,7 @@ Future ProfileDialog(UserModel allUserData, context) => showDialog(
                   radius: screenWidth! * 0.1,
                   backgroundColor: AppColor.primarybgcolor,
                   backgroundImage: AssetImage("assets/Avatar.png"),
-                  foregroundImage: NetworkImage(allUserData.imageURL),
+                  foregroundImage: NetworkImage(UserData.imageURL),
                   //foregroundImage: sp.imageUrl == null ? AssetImage("assets/Avatar.png") : NetworkImage(sp.imageUrl),
                   //foregroundImage: NetworkImage(sp.imageUrl!),
                 ),
@@ -29,7 +30,7 @@ Future ProfileDialog(UserModel allUserData, context) => showDialog(
                   height: screenHeight! * 0.01,
                 ),
                 Text(
-                  allUserData.name,
+                  UserData.name,
                   style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.w600,
@@ -38,14 +39,13 @@ Future ProfileDialog(UserModel allUserData, context) => showDialog(
                 ),
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: screenHeight! * 0.01),
-                  child: Text(allUserData.connectedList!.length.toString() +
-                      " Connections"),
+                  child: Text("${UserData.connectedList!.length} Connections"),
                 ),
                 SizedBox(
                   height: screenHeight! * 0.03,
                 ),
-                allUserData.isPrivate == false
-                    ? Text(
+                UserData.isPrivate == false || currentUserData.connectedList!.contains(UserData.uid) == true
+                    ? const Text(
                         "Social Links",
                         style: TextStyle(
                           letterSpacing: 1,
@@ -55,7 +55,7 @@ Future ProfileDialog(UserModel allUserData, context) => showDialog(
                         textAlign: TextAlign.left,
                       )
                     : Text(""),
-                allUserData.isPrivate == false
+                UserData.isPrivate == false || currentUserData.connectedList!.contains(UserData.uid) == true
                     ? Container(
                         padding: EdgeInsets.all(20),
                         child: Column(
@@ -63,13 +63,13 @@ Future ProfileDialog(UserModel allUserData, context) => showDialog(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             social_link(context, 1, "assets/linkedin.png",
-                                "Linkedin", allUserData.linkedin),
+                                "Linkedin", UserData.linkedin),
                             social_link(context, 2, "assets/github.png",
-                                "Github", allUserData.github),
+                                "Github", UserData.github),
                             social_link(context, 3, "assets/website.png",
-                                "Portfolio", allUserData.portfolio),
+                                "Portfolio", UserData.portfolio),
                             social_link(context, 4, "assets/twitter.png",
-                                "Twitter", allUserData.twitter),
+                                "Twitter", UserData.twitter),
                           ],
                         ),
                       )
@@ -83,24 +83,57 @@ Future ProfileDialog(UserModel allUserData, context) => showDialog(
                           ),
                         ),
                       ),
-                allUserData.isPrivate == true ?
-                ElevatedButton(
-                    onPressed: () {
-                      toastWidget("Connection Request Sent");
-                    },
-                    child: Text("Connect"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColor.buttoncolor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                    ):Container(),
+                UserData.isPrivate == true || currentUserData.connectedList!.contains(UserData.uid) == false?
+                ConnectButton(SenderUserData: UserData):Container(),
 
               ],
             ),
           ));
     });
+
+class ConnectButton extends ConsumerWidget {
+  final UserModel SenderUserData;
+  const ConnectButton({
+    Key? key,
+    required this.SenderUserData,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final _currentUserDetails = ref.watch(userDetailsProvider);
+    final _databaseProvider = ref.watch(databaseProvider);
+
+    return ElevatedButton(
+      onPressed: () async {
+        UserModel currentUser = _currentUserDetails.value!;
+
+        if(SenderUserData.requestList!.contains(currentUser.uid) == true) {
+           toastWidget("Already Sent");
+           Navigator.of(context).pop();
+        }else if(SenderUserData.connectedList!.contains(currentUser.uid) == true){
+          toastWidget("Already Connected");
+          Navigator.of(context).pop();
+        }
+        else{
+          toastWidget("Connection Request Sent");
+          SenderUserData.requestList!.add(currentUser.uid);
+          await _databaseProvider.updateUserData(SenderUserData);
+          Navigator.of(context).pop();
+        }
+
+      },
+      child: Text("Connect"),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColor.buttoncolor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+    );
+  }
+}
+
+
 Widget social_link(context, index, image, text, link) {
   return Container(
     width: screenWidth! * 0.3,

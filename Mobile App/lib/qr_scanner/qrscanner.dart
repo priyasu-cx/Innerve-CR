@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:ConnecTen/utils/fluttertoast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ConnecTen/Models/user_models.dart';
@@ -32,6 +33,8 @@ class _QRScanState extends ConsumerState<QRScan> {
     final databaseUser = ref.watch(databaseProvider);
     final userDetails = ref.watch(userDetailsProvider);
 
+    UserModel user = userDetails.value!;
+
 
     return Scaffold(
       body: QRView(
@@ -63,9 +66,13 @@ class _QRScanState extends ConsumerState<QRScan> {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) async {
       controller.pauseCamera();
-      DatabaseService().userDetailsWithID(scanData.code!).listen((userData) {
+      DatabaseService().userDetailsWithID(scanData.code!).listen((userData) async {
         if (userData != null) {
-          ProfileDialog(userData, context);
+          Navigator.of(context).pop();
+          ProfileDialog(userData, userData, context);
+
+        } else {
+          toastWidget("User not found");
         }
       });
       // final databaseUser = ref.watch(userDetailsWithIdProvider(scanData.code!));
@@ -91,3 +98,13 @@ class _QRScanState extends ConsumerState<QRScan> {
     });
   }
 }
+
+class DialogBox extends StatelessWidget {
+  const DialogBox({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
+  }
+}
+
